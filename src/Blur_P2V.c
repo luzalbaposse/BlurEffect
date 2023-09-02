@@ -32,8 +32,12 @@ int main(int argc, char **argv) {
   step_copy(width, height, data, result, 0, width-1, 0, height-1);
   
   // Procesamiento de la imagen
-  // COMPLETAR
+  // pthread_t thread1, thread2;
+  // pthread_create(&thread1, NULL, process1, NULL);
+  // pthread_create(&thread2, NULL, process2, NULL);
 
+  // pthread_join(thread1, NULL);
+  // pthread_join(thread2, NULL);
   // Liberacion de memoria
   free(data);
 
