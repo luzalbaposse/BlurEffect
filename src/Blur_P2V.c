@@ -10,18 +10,8 @@ uint32_t height;
 uint8_t* data;
 uint8_t* result;
 
-typedef struct {
-// esto es para crear alias o nombres alternativos para tipos de datos que ya declaramos, habría que preguntar si lo podemos usar. es para mejorar la lectura del codigo no + (att: Lu)
-  int start_col;
-  int end_col;
-} ThreadArgs;
-
-static void* processVertical(void* arg) {
-  ThreadArgs* args = (ThreadArgs*)arg;
-  int start_col = args->start_col;
-  int end_col = args->end_col;
-  step_blur3(width, height, data, result, start_col, end_col, 1, height-2);
-  pthread_exit(NULL);
+static void* process2(__attribute__((unused)) void* _) {
+  step_blur3(width, height, data, result, width/2+1, width-2, 1, height-2); 
 }
 
 int main(int argc, char **argv) {
@@ -40,23 +30,19 @@ int main(int argc, char **argv) {
   // Solicito memoria para datos temporales
   result = (uint8_t*) malloc(width * height * sizeof(bgra_t));
   step_copy(width, height, data, result, 0, width-1, 0, height-1);
-  
+
   // Procesamiento de la imagen
-  // Dividir el trabajo verticalmente entre cuatro threads
-  int col_step = width / 4;
-  pthread_t threads[4];
-  ThreadArgs args[4];
-
-  for (int i = 0; i < 4; i++) {
-    args[i].start_col = i * col_step;
-    args[i].end_col = (i + 1) * col_step - 1;
-    pthread_create(&threads[i], NULL, processVertical, &args[i]);
+  for(int i = 0; i<count; i++) {
+    uint8_t* tmp;
+    pthread_t thread;
+    pthread_create(&thread, NULL, process2, NULL);
+    step_blur3(width, height, data, result, 1, width/2, 1, height-2);
+    pthread_join(thread, NULL);
+    tmp = data;
+    data = result;
+    result = tmp;
   }
-
-  // Esperar a que todos los threads terminen
-  for (int i = 0; i < 4; i++) {
-    pthread_join(threads[i], NULL);
-  }
+  paintEdges(width, height, result);
 
   // Liberacion de memoria
   free(data);
