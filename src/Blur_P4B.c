@@ -10,23 +10,16 @@ uint32_t height;
 uint8_t* data;
 uint8_t* result;
 
-typedef struct {
-// esto es para crear alias o nombres alternativos para tipos de datos que ya declaramos, habría que preguntar si lo podemos usar. es para mejorar la lectura del codigo no + (att: Lu)
-  int start_col;
-  int end_col;
-  int start_row;
-  int end_row;
-} ThreadArgs;
+static void* process2(__attribute__((unused)) void* _) {
+  step_blur3(width, height, data, result, (width/2)+1, width-2, height/2+1, height-2);
+}
 
-static void* processBox(void* arg) {
-  ThreadArgs* args = (ThreadArgs*)arg;
-  int start_col = args->start_col;
-  int end_col = args->end_col;
-  int start_row = args->start_row;
-  int end_row = args->end_row;
+static void* process3(__attribute__((unused)) void* _) {
+  step_blur3(width, height, data, result, 1, width/2, 1, height/2);
+}
 
-  step_blur3(width, height, data, result, start_col, end_col, start_row, end_row);
-  pthread_exit(NULL);
+static void* process4(__attribute__((unused)) void* _) {
+  step_blur3(width, height, data, result, (width/2)+1, width-2, 1, height/2);
 }
 
 int main(int argc, char **argv) {
@@ -47,25 +40,21 @@ int main(int argc, char **argv) {
   step_copy(width, height, data, result, 0, width-1, 0, height-1);
   
   // Procesamiento de la imagen
-  // Dividir el trabajo en cuadrados entre cuatro threads
-  int col_mid = width / 2;
-  int row_mid = height / 2;
-
-  pthread_t threads[4];
-  ThreadArgs args[4];
-
-  for (int i = 0; i < 4; i++) {
-    args[i].start_col = (i % 2) * col_mid;
-    args[i].end_col = ((i % 2) + 1) * col_mid - 1;
-    args[i].start_row = (i / 2) * row_mid;
-    args[i].end_row = ((i / 2) + 1) * row_mid - 1;
-    pthread_create(&threads[i], NULL, processBox, &args[i]);
+  for(int i = 0; i<count; i++) {
+    uint8_t* tmp;
+    pthread_t thread2, thread3, thread4;
+    pthread_create(&thread2, NULL, process2, NULL);
+    pthread_create(&thread3, NULL, process3, NULL);
+    pthread_create(&thread4, NULL, process4, NULL);
+    step_blur3(width, height, data, result, 1, width/2, height/2+1, height-2);
+    pthread_join(thread2, NULL);
+    pthread_join(thread3, NULL);
+    pthread_join(thread4, NULL);
+    tmp = data;
+    data = result;
+    result = tmp;
   }
-
-  // Esperar a que todos los threads terminen
-  for (int i = 0; i < 4; i++) {
-    pthread_join(threads[i], NULL);
-  }
+  paintEdges(width, height, result);
 
   // Liberacion de memoria
   free(data);
