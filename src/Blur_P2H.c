@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
   step_copy(width, height, data, result, 0, width-1, 0, height-1);
   
   // Procesamiento de la imagen
-  // for(int i = 0; i<count; i++) {
+  for(int i = 0; i<count; i++) {
     uint8_t* tmp;
     pthread_t thread;
     pthread_create(&thread, NULL, process2, NULL);
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     tmp = data;
     data = result;
     result = tmp;
-  // }
+  }
   paintEdges(width, height, result);
 
   // Liberacion de memoria
