@@ -10,8 +10,16 @@ uint32_t height;
 uint8_t* data;
 uint8_t* result;
 
+static void* process2(__attribute__((unused)) void* _) {
+  step_blur3(width, height, data, result, 1, width-2, (height/4)+1, height/2);
+}
+
+static void* process3(__attribute__((unused)) void* _) {
+  step_blur3(width, height, data, result, 1, width-2, (height/2)+1, height*(3/4));
+}
+
 static void* process4(__attribute__((unused)) void* _) {
-  step_blur3(width, height, data, result, 1, width-2, 1, height/4);
+  step_blur3(width, height, data, result, 1, width-2, (height*(3/4))+1, height-2);
 }
 
 int main(int argc, char **argv) {
@@ -34,14 +42,14 @@ int main(int argc, char **argv) {
   // Procesamiento de la imagen
   for(int i = 0; i<count; i++) {
     uint8_t* tmp;
-    pthread_t thread1, thread2, thread3;
-    pthread_create(&thread1, NULL, process4, NULL);
-    pthread_create(&thread2, NULL, process4, NULL);
-    pthread_create(&thread3, NULL, process4, NULL);
-    step_blur3(width, height, data, result, 1, width-2, height/4+1, height-2);
-    pthread_join(thread1, NULL);
+    pthread_t thread2,thread3,thread4;
+    pthread_create(&thread2, NULL, process2, NULL);
+    pthread_create(&thread3, NULL, process3, NULL);
+    pthread_create(&thread4, NULL, process4, NULL);
+    step_blur3(width, height, data, result, 1, width-2, 1, height/4);
     pthread_join(thread2, NULL);
     pthread_join(thread3, NULL);
+    pthread_join(thread4, NULL);
     tmp = data;
     data = result;
     result = tmp;
