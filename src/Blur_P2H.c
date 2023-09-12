@@ -15,7 +15,7 @@ uint8_t* data;
 uint8_t* result;
 
 static void* process2(__attribute__((unused)) void* _) {
-  step_blur3(width, height, data, result, 1, width-2, 1, height/2);
+  step_blur3(width, height, data, result, 1, width-2, 1, height/2); // Esto 
 }
 
 int main(int argc, char **argv) {

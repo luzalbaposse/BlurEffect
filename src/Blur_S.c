@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   // Procesamiento de la imagen
   for(int i = 0; i<count; i++) {
     uint8_t* tmp;
-    step_blur3(width, height, data, result, 1, width-2, 1, height-2);
+    step_blur3(width, height, data, result, 1, width-2, 1, height-2); // le resta 2 a width y height para no procesar los bordes
     tmp = data;
     data = result;
     result = tmp;
